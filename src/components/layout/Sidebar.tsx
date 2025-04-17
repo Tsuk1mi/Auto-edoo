@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import { integrationService } from '@/features/integration/services/integrationService';
+import { hasAccess } from '@/types/User';
 
 interface SidebarItemProps {
   to: string;
@@ -53,11 +54,16 @@ const SidebarItem = ({ to, icon, label, isActive = false, onClick, isExternal = 
 
 export const Sidebar = () => {
   const location = useLocation();
-  const { logout } = useAuthStore();
+  const { user, logout } = useAuthStore();
   const [isLoading, setIsLoading] = useState({
     grafana: false,
     ansible: false,
   });
+
+  // Проверка прав доступа
+  const canViewInventory = hasAccess(user, 'canViewInventory');
+  const canAccessAdmin = hasAccess(user, 'canAccessAdmin');
+  const canViewExternalSystems = hasAccess(user, 'canViewExternalSystems');
 
   const handleLogout = async () => {
     await logout();
@@ -132,28 +138,50 @@ export const Sidebar = () => {
             label="Автоматизация"
             isActive={location.pathname === '/automation'}
           />
+
+          {/* Добавляем пункт инвентаризации, если есть права */}
+          {canViewInventory && (
+            <SidebarItem
+              to="/inventory"
+              icon="fa-boxes"
+              label="Инвентаризация"
+              isActive={location.pathname === '/inventory'}
+            />
+          )}
+
+          {/* Добавляем пункт админки, если есть права */}
+          {canAccessAdmin && (
+            <SidebarItem
+              to="/admin"
+              icon="fa-shield-alt"
+              label="Администрирование"
+              isActive={location.pathname.startsWith('/admin')}
+            />
+          )}
         </div>
 
-        {/* Внешние системы */}
-        <div className="pt-4 border-t border-gray-700">
-          <h3 className="text-xs text-gray-500 uppercase tracking-wider pb-2 px-4">Внешние системы</h3>
+        {/* Внешние системы - показываем, только если есть права */}
+        {canViewExternalSystems && (
+          <div className="pt-4 border-t border-gray-700">
+            <h3 className="text-xs text-gray-500 uppercase tracking-wider pb-2 px-4">Внешние системы</h3>
 
-          <SidebarItem
-            to=""
-            icon="fa-chart-line"
-            label="Графана"
-            isExternal
-            onClick={openGrafana}
-          />
+            <SidebarItem
+              to=""
+              icon="fa-chart-line"
+              label="Графана"
+              isExternal
+              onClick={openGrafana}
+            />
 
-          <SidebarItem
-            to=""
-            icon="fa-cogs"
-            label="Ansible"
-            isExternal
-            onClick={openAnsible}
-          />
-        </div>
+            <SidebarItem
+              to=""
+              icon="fa-cogs"
+              label="Ansible"
+              isExternal
+              onClick={openAnsible}
+            />
+          </div>
+        )}
 
         {/* Настройки */}
         <div className="pt-4 mt-auto">

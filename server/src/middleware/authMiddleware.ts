@@ -121,14 +121,17 @@ export const generateToken = (userId: string): string => {
   return token;
 };
 
-// Middleware для проверки роли пользователя
-export const checkRole = (roles: string[]) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    if (!req.user) {
-      logger.warn('Role check failed - no user in request', {
+// Новый middleware для аутентификации
+export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    // Получаем токен из заголовка Authorization
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.split(' ')[1]; // Bearer TOKEN
+
+    if (!token) {
+      logger.warn('Auth middleware - no token provided', {
         path: req.path,
-        method: req.method,
-        requiredRoles: roles
+        ip: req.ip
       });
       return res.status(401).json({
         success: false,
@@ -136,28 +139,100 @@ export const checkRole = (roles: string[]) => {
       });
     }
 
-    // Проверка роли пользователя
-    // Здесь добавлен комментарий как бы реализовывалась проверка ролей
-    // if (!roles.includes(req.user.role)) {
-    //   logger.warn('Role check failed - insufficient permissions', {
-    //     userId: req.userId,
-    //     path: req.path,
-    //     method: req.method,
-    //     userRole: req.user.role,
-    //     requiredRoles: roles
-    //   });
-    //   return res.status(403).json({
-    //     success: false,
-    //     message: 'У вас нет прав для этого действия'
-    //   });
-    // }
+    // Верифицируем токен
+    try {
+      const decoded = jwt.verify(token, config.jwtSecret) as JwtPayload;
 
-    logger.debug('Role check passed', {
-      userId: req.userId,
-      path: req.path,
-      method: req.method,
-      requiredRoles: roles
+      // Получаем пользователя из базы
+      const user = await User.findById(decoded.id).select('-password');
+
+      if (!user) {
+        logger.warn('Auth middleware - user not found', {
+          userId: decoded.id,
+          path: req.path
+        });
+        return res.status(401).json({
+          success: false,
+          message: 'Пользователь не найден'
+        });
+      }
+
+      // Добавляем пользователя и ID в объект запроса
+      req.user = user;
+      req.userId = decoded.id;
+
+      logger.debug('Auth middleware - authentication successful', {
+        userId: decoded.id,
+        path: req.path
+      });
+
+      next();
+    } catch (error) {
+      logger.warn('Auth middleware - invalid token', {
+        error: error instanceof Error ? error.message : String(error),
+        path: req.path
+      });
+      return res.status(401).json({
+        success: false,
+        message: 'Недействительный токен'
+      });
+    }
+  } catch (error) {
+    logger.error('Auth middleware - unexpected error', {
+      error: error instanceof Error ? error.message : String(error),
+      path: req.path
     });
-    next();
+    return res.status(500).json({
+      success: false,
+      message: 'Ошибка сервера при проверке авторизации'
+    });
+  }
+};
+
+// Middleware для проверки ролей
+export const roleMiddleware = (roles: string[]) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      // Проверяем, прошел ли пользователь аутентификацию
+      if (!req.user) {
+        logger.warn('Role middleware - no user in request', {
+          path: req.path,
+          method: req.method
+        });
+        return res.status(401).json({
+          success: false,
+          message: 'Требуется авторизация'
+        });
+      }
+
+      // Проверка роли пользователя
+      const userRoles = req.user.roles || [];
+      const hasRole = roles.some(role => userRoles.includes(role));
+
+      if (!hasRole) {
+        logger.warn('Role check failed - insufficient permissions', {
+          userId: req.userId,
+          path: req.path,
+          method: req.method,
+          userRoles,
+          requiredRoles: roles
+        });
+        return res.status(403).json({
+          success: false,
+          message: 'У вас нет прав для этого действия'
+        });
+      }
+
+      next();
+    } catch (error) {
+      logger.error('Role middleware - unexpected error', {
+        error: error instanceof Error ? error.message : String(error),
+        path: req.path
+      });
+      return res.status(500).json({
+        success: false,
+        message: 'Ошибка сервера при проверке прав доступа'
+      });
+    }
   };
 };

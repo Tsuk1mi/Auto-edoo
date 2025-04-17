@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-
 import { useAuthStore } from '@/store/authStore';
 import { authEvents } from '@/api/api';
 import { logger } from '@/utils/logger';
+import { hasAccess } from '@/types/User';
 
 // Макеты
 const MainLayout = lazy(() => import('@/components/layout/MainLayout'));
@@ -16,7 +17,8 @@ const CreateDocumentPage = lazy(() => import('@/features/documents/pages/CreateD
 const OutboxDocumentsPage = lazy(() => import('@/features/documents/pages/OutboxDocuments'));
 const AutomationPage = lazy(() => import('@/features/automation/pages/Automation'));
 const SettingsPage = lazy(() => import('@/features/settings/pages/Settings'));
-// Добавьте дополнительные маршруты по мере необходимости
+const InventoryPage = lazy(() => import('@/features/inventory/pages/Inventory'));
+const AdminDashboardPage = lazy(() => import('@/features/admin/pages/AdminDashboard'));
 
 // Запасной вариант во время ленивой загрузки
 const LoadingFallback = () => (
@@ -121,6 +123,28 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Обертка для маршрутов, требующих специальных прав доступа
+const RoleProtectedRoute = ({
+  accessRight,
+  children
+}: {
+  accessRight: string;
+  children: React.ReactNode
+}) => {
+  const { user } = useAuthStore();
+  const location = useLocation();
+
+  // Проверяем наличие прав доступа
+  if (!hasAccess(user, accessRight as any)) {
+    logger.warn(`Access denied to ${location.pathname} - missing right: ${accessRight}`);
+    // Редирект на главную, если нет прав
+    return <Navigate to="/" replace />;
+  }
+
+  // Отображаем защищенный контент
+  return <>{children}</>;
+};
+
 // Компонент для защиты маршрута логина от уже авторизованных пользователей
 const PublicOnlyRoute = ({ children }: { children: React.ReactNode }) => {
   const { token, isLoading } = useAuthStore();
@@ -194,7 +218,20 @@ export const AppRouter = () => {
           <Route path="outbox" element={<OutboxDocumentsPage />} />
           <Route path="automation" element={<AutomationPage />} />
           <Route path="settings" element={<SettingsPage />} />
-          {/* Добавьте дополнительные маршруты по мере необходимости */}
+
+          {/* Новый маршрут для инвентаризации - доступен только с правом canViewInventory */}
+          <Route path="inventory" element={
+            <RoleProtectedRoute accessRight="canViewInventory">
+              <InventoryPage />
+            </RoleProtectedRoute>
+          } />
+
+          {/* Новый маршрут для админки - доступен только с правом canAccessAdmin */}
+          <Route path="admin" element={
+            <RoleProtectedRoute accessRight="canAccessAdmin">
+              <AdminDashboardPage />
+            </RoleProtectedRoute>
+          } />
         </Route>
 
         {/* Маршрут для неизвестных путей */}
