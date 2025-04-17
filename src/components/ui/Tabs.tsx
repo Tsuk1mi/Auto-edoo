@@ -10,6 +10,8 @@ const tabsVariants = cva('flex', {
       pills: 'space-x-1',
       buttons: 'p-1 bg-gray-100 dark:bg-gray-800 rounded-lg',
       underline: 'border-b border-gray-200 dark:border-gray-700',
+      // Добавляем новый вариант для админ-панели
+      admin: 'border-b border-gray-700 gap-1',
     },
     size: {
       sm: 'text-sm',
@@ -32,7 +34,7 @@ const tabsVariants = cva('flex', {
 type TabsContextType = {
   activeTab: string;
   setActiveTab: (id: string) => void;
-  variant: 'default' | 'pills' | 'buttons' | 'underline';
+  variant: 'default' | 'pills' | 'buttons' | 'underline' | 'admin';
   size: 'sm' | 'md' | 'lg';
 };
 
@@ -157,6 +159,11 @@ export const Tab: React.FC<TabProps> = ({
           ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
           : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 border-b-2 border-transparent';
 
+      case 'admin':
+        return isActive
+          ? 'text-blue-400 border-b-2 border-blue-600 font-semibold'
+          : 'text-gray-300 hover:text-blue-400 border-b-2 border-transparent';
+
       case 'default':
       default:
         return isActive
@@ -228,6 +235,46 @@ export const TabPanel: React.FC<TabPanelProps> = ({
       className={`py-4 ${className}`}
     >
       {children}
+    </div>
+  );
+};
+
+// Простой вариант Tabs для AdminDashboard
+interface SimpleTab {
+  id: string;
+  label: string;
+}
+
+interface SimpleTabsProps {
+  tabs: SimpleTab[];
+  activeTab: string;
+  onChange: (tabId: string) => void;
+  className?: string;
+}
+
+export const SimpleTabs: React.FC<SimpleTabsProps> = ({
+  tabs,
+  activeTab,
+  onChange,
+  className = '',
+}) => {
+  return (
+    <div className={`border-b border-gray-700 ${className}`}>
+      <div className="flex space-x-4">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            className={`px-4 py-2 font-medium transition-all duration-200 ${
+              activeTab === tab.id
+                ? 'text-blue-400 border-b-2 border-blue-500'
+                : 'text-gray-400 hover:text-blue-300 border-b-2 border-transparent'
+            }`}
+            onClick={() => onChange(tab.id)}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 };

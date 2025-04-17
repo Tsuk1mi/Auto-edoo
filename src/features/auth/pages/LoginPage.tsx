@@ -19,6 +19,9 @@ const LoginPage = () => {
     password: '',
   });
 
+  // Добавляем выбор типа пользователя
+  const [userType, setUserType] = useState('user'); // 'admin', 'user', 'manager', 'inventory'
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setCredentials((prev) => ({
@@ -33,12 +36,29 @@ const LoginPage = () => {
     try {
       logger.debug("Attempting login", { email: credentials.email, from });
 
-      // Выполняем вход с текущими учетными данными
-      const creds = credentials.email === '' ?
-        { email: 'user@example.com', password: 'password123' } :
-        credentials;
+      // Если поля пустые, устанавливаем данные в зависимости от выбранного типа пользователя
+      let creds;
+      if (credentials.email === '' || credentials.password === '') {
+        switch (userType) {
+          case 'admin':
+            creds = { email: 'admin@example.com', password: 'password123' };
+            break;
+          case 'manager':
+            creds = { email: 'manager@example.com', password: 'password123' };
+            break;
+          case 'inventory':
+            creds = { email: 'inventory@example.com', password: 'password123' };
+            break;
+          case 'user':
+          default:
+            creds = { email: 'user@example.com', password: 'password123' };
+            break;
+        }
+      } else {
+        creds = credentials;
+      }
 
-      // Сначала выполняем вход
+      // Выполняем вход
       logger.debug("Before login call", { email: creds.email });
       await login(creds);
       logger.debug("After login call - authentication successful");
@@ -67,14 +87,27 @@ const LoginPage = () => {
   };
 
   // Для упрощения тестирования демо-режима
-  const setDemoCredentials = () => {
-    logger.debug("Demo mode activated");
+  const setDemoCredentials = (type: 'admin' | 'user' | 'manager' | 'inventory') => {
+    logger.debug(`Demo mode activated for ${type}`);
+    setUserType(type);
 
-    // Устанавливаем демо-данные
-    const demoCredentials = {
-      email: 'user@example.com',
-      password: 'password123'
-    };
+    // Устанавливаем демо-данные в зависимости от типа
+    let demoCredentials;
+    switch (type) {
+      case 'admin':
+        demoCredentials = { email: 'admin@example.com', password: 'password123' };
+        break;
+      case 'manager':
+        demoCredentials = { email: 'manager@example.com', password: 'password123' };
+        break;
+      case 'inventory':
+        demoCredentials = { email: 'inventory@example.com', password: 'password123' };
+        break;
+      case 'user':
+      default:
+        demoCredentials = { email: 'user@example.com', password: 'password123' };
+        break;
+    }
 
     logger.debug("Setting demo credentials", { email: demoCredentials.email });
     // Сначала обновляем состояние
@@ -190,14 +223,48 @@ const LoginPage = () => {
               Войти
             </Button>
 
-            <Button
-              type="button"
-              onClick={setDemoCredentials}
-              variant="outline"
-              fullWidth
-            >
-              Демо режим
-            </Button>
+            {/* Секция выбора типа пользователя для демо-режима */}
+            <div className="mt-4">
+              <div className="text-sm font-medium text-gray-300 mb-2">Демо-режим - выберите тип пользователя:</div>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  type="button"
+                  onClick={() => setDemoCredentials('user')}
+                  variant={userType === 'user' ? 'primary' : 'outline'}
+                  fullWidth
+                >
+                  <i className="fas fa-user mr-2" />
+                  Пользователь
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => setDemoCredentials('admin')}
+                  variant={userType === 'admin' ? 'primary' : 'outline'}
+                  fullWidth
+                >
+                  <i className="fas fa-user-shield mr-2" />
+                  Администратор
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => setDemoCredentials('manager')}
+                  variant={userType === 'manager' ? 'primary' : 'outline'}
+                  fullWidth
+                >
+                  <i className="fas fa-user-tie mr-2" />
+                  Менеджер
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => setDemoCredentials('inventory')}
+                  variant={userType === 'inventory' ? 'primary' : 'outline'}
+                  fullWidth
+                >
+                  <i className="fas fa-boxes mr-2" />
+                  Кладовщик
+                </Button>
+              </div>
+            </div>
           </div>
         </form>
 

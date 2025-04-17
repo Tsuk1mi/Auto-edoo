@@ -5,6 +5,8 @@ interface UseModalReturn {
   open: () => void;
   close: () => void;
   toggle: () => void;
+  openModal: () => void; // Алиас для open
+  closeModal: () => void; // Алиас для close
 }
 
 export const useModal = (initialState = false): UseModalReturn => {
@@ -22,5 +24,13 @@ export const useModal = (initialState = false): UseModalReturn => {
     setIsOpen((prev) => !prev);
   }, []);
 
-  return { isOpen, open, close, toggle };
+  // Возвращаем и алиасы для совместимости с обоими вариантами названий
+  return {
+    isOpen,
+    open,
+    close,
+    toggle,
+    openModal: open, // Алиас для open
+    closeModal: close // Алиас для close
+  };
 };

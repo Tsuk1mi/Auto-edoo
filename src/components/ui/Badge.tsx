@@ -14,6 +14,10 @@ const badgeVariants = cva(
         danger: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
         info: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
         outline: "bg-transparent border border-gray-300 text-gray-700 dark:border-gray-600 dark:text-gray-300",
+        red: "bg-red-900/30 border border-red-800 text-red-300",
+        blue: "bg-blue-900/30 border border-blue-800 text-blue-300",
+        green: "bg-green-900/30 border border-green-800 text-green-300",
+        gray: "bg-gray-800/50 border border-gray-700 text-gray-300",
       },
       size: {
         sm: "text-xs px-2 py-0.5",
@@ -70,6 +74,10 @@ const Badge = React.forwardRef<HTMLDivElement, BadgeProps>(
       danger: "bg-red-500",
       info: "bg-blue-500",
       outline: "bg-gray-500",
+      red: "bg-red-500",
+      blue: "bg-blue-500",
+      green: "bg-green-500",
+      gray: "bg-gray-500",
     };
 
     const getDotColor = () => {
