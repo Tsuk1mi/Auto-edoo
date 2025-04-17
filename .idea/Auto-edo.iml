@@ -1,12 +1,1 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<module type="WEB_MODULE" version="4">
-  <component name="NewModuleRootManager">
-    <content url="file://$MODULE_DIR$">
-      <excludeFolder url="file://$MODULE_DIR$/.tmp" />
-      <excludeFolder url="file://$MODULE_DIR$/temp" />
-      <excludeFolder url="file://$MODULE_DIR$/tmp" />
-    </content>
-    <orderEntry type="inheritedJdk" />
-    <orderEntry type="sourceFolder" forTests="false" />
-  </component>
-</module>
+PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPG1vZHVsZSB0eXBlPSJXRUJfTU9EVUxFIiB2ZXJzaW9uPSI0Ij4KICA8Y29tcG9uZW50IG5hbWU9Ik5ld01vZHVsZVJvb3RNYW5hZ2VyIj4KICAgIDxjb250ZW50IHVybD0iZmlsZTovLyRNT0RVTEVfRElSJCI+CiAgICAgIDxleGNsdWRlRm9sZGVyIHVybD0iZmlsZTovLyRNT0RVTEVfRElSJC8udG1wIiAvPgogICAgICA8ZXhjbHVkZUZvbGRlciB1cmw9ImZpbGU6Ly8kTU9EVUxFX0RJUiQvdGVtcCIgLz4KICAgICAgPGV4Y2x1ZGVGb2xkZXIgdXJsPSJmaWxlOi8vJE1PRFVMRV9ESVIkL3RtcCIgLz4KICAgIDwvY29udGVudD4KICAgIDxvcmRlckVudHJ5IHR5cGU9ImluaGVyaXRlZEpkayIgLz4KICAgIDxvcmRlckVudHJ5IHR5cGU9InNvdXJjZUZvbGRlciIgZm9yVGVzdHM9ImZhbHNlIiAvPgogIDwvY29tcG9uZW50Pgo8L21vZHVsZT4=

@@ -2,16 +2,82 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import { logger } from '../utils/logger.ts';
 
+// Добавляем возможные роли пользователей
+export enum UserRole {
+  ADMIN = 'admin',
+  USER = 'user',
+  MANAGER = 'manager',
+  INVENTORY = 'inventory'
+}
+
+// Добавляем набор прав доступа
+export interface AccessRights {
+  canViewDocuments: boolean;
+  canCreateDocuments: boolean;
+  canEditDocuments: boolean;
+  canViewInventory: boolean;
+  canManageInventory: boolean;
+  canAccessAdmin: boolean;
+  canManageUsers: boolean;
+  canViewExternalSystems: boolean;
+}
+
+// Объект с правами доступа для каждой роли
+export const roleAccessMap: Record<UserRole, AccessRights> = {
+  [UserRole.ADMIN]: {
+    canViewDocuments: true,
+    canCreateDocuments: true,
+    canEditDocuments: true,
+    canViewInventory: true,
+    canManageInventory: true,
+    canAccessAdmin: true,
+    canManageUsers: true,
+    canViewExternalSystems: true
+  },
+  [UserRole.USER]: {
+    canViewDocuments: true,
+    canCreateDocuments: true,
+    canEditDocuments: false,
+    canViewInventory: false,
+    canManageInventory: false,
+    canAccessAdmin: false,
+    canManageUsers: false,
+    canViewExternalSystems: false
+  },
+  [UserRole.MANAGER]: {
+    canViewDocuments: true,
+    canCreateDocuments: true,
+    canEditDocuments: true,
+    canViewInventory: true,
+    canManageInventory: false,
+    canAccessAdmin: false,
+    canManageUsers: false,
+    canViewExternalSystems: true
+  },
+  [UserRole.INVENTORY]: {
+    canViewDocuments: true,
+    canCreateDocuments: false,
+    canEditDocuments: false,
+    canViewInventory: true,
+    canManageInventory: true,
+    canAccessAdmin: false,
+    canManageUsers: false,
+    canViewExternalSystems: false
+  }
+};
+
 export interface IUser {
   username: string;
   email: string;
   password: string;
   fullName: string;
   avatar?: string;
+  roles: UserRole[];
 }
 
 export interface IUserDocument extends IUser, mongoose.Document {
   comparePassword(candidatePassword: string): Promise<boolean>;
+  hasAccess(right: keyof AccessRights): boolean;
 }
 
 const userSchema = new mongoose.Schema<IUserDocument>(
@@ -39,6 +105,11 @@ const userSchema = new mongoose.Schema<IUserDocument>(
     avatar: {
       type: String,
     },
+    roles: {
+      type: [String],
+      enum: Object.values(UserRole),
+      default: [UserRole.USER]
+    }
   },
   { timestamps: true }
 );
@@ -61,6 +132,19 @@ userSchema.methods.comparePassword = async function (candidatePassword: string):
   return bcrypt.compare(candidatePassword, this.password);
 };
 
+// Метод для проверки прав доступа
+userSchema.methods.hasAccess = function (right: keyof AccessRights): boolean {
+  if (!this.roles || this.roles.length === 0) {
+    return false;
+  }
+
+  // Проверяем, есть ли у пользователя хотя бы одна роль, дающая указанное право
+  return this.roles.some(role => {
+    const roleRights = roleAccessMap[role as UserRole];
+    return roleRights && roleRights[right];
+  });
+};
+
 // Мок пользовательских данных для режима разработки без БД
 const mockUsers = [
   {
@@ -69,7 +153,8 @@ const mockUsers = [
     email: 'admin@example.com',
     password: '$2b$10$zQSWDY6Uy4JGK/i6IwAGf.1fZfYUzzeHy0r6ETnKH.gfDrJFTvxFG', // пароль: password123
     fullName: 'Администратор Системы',
-    avatar: 'https://avatars.githubusercontent.com/u/1?v=4'
+    avatar: 'https://avatars.githubusercontent.com/u/1?v=4',
+    roles: [UserRole.ADMIN]
   },
   {
     _id: new mongoose.Types.ObjectId('60d0fe4f5311236168a109cb'),
@@ -77,7 +162,26 @@ const mockUsers = [
     email: 'user@example.com',
     password: '$2b$10$zQSWDY6Uy4JGK/i6IwAGf.1fZfYUzzeHy0r6ETnKH.gfDrJFTvxFG', // пароль: password123
     fullName: 'Тестовый Пользователь',
-    avatar: 'https://avatars.githubusercontent.com/u/2?v=4'
+    avatar: 'https://avatars.githubusercontent.com/u/2?v=4',
+    roles: [UserRole.USER]
+  },
+  {
+    _id: new mongoose.Types.ObjectId('60d0fe4f5311236168a109cc'),
+    username: 'manager',
+    email: 'manager@example.com',
+    password: '$2b$10$zQSWDY6Uy4JGK/i6IwAGf.1fZfYUzzeHy0r6ETnKH.gfDrJFTvxFG', // пароль: password123
+    fullName: 'Менеджер Проекта',
+    avatar: 'https://avatars.githubusercontent.com/u/3?v=4',
+    roles: [UserRole.MANAGER]
+  },
+  {
+    _id: new mongoose.Types.ObjectId('60d0fe4f5311236168a109cd'),
+    username: 'inventory',
+    email: 'inventory@example.com',
+    password: '$2b$10$zQSWDY6Uy4JGK/i6IwAGf.1fZfYUzzeHy0r6ETnKH.gfDrJFTvxFG', // пароль: password123
+    fullName: 'Кладовщик',
+    avatar: 'https://avatars.githubusercontent.com/u/4?v=4',
+    roles: [UserRole.INVENTORY]
   }
 ];
 
@@ -92,6 +196,16 @@ const createMockUserModel = () => {
       }
       // Стандартное поведение - проверка через bcrypt
       return bcrypt.compare(candidatePassword, this.password);
+    },
+    hasAccess: function(this: any, right: keyof AccessRights): boolean {
+      logger.debug('Mock hasAccess called', { right, roles: this.roles });
+      if (!this.roles || this.roles.length === 0) {
+        return false;
+      }
+      return this.roles.some((role: UserRole) => {
+        const roleRights = roleAccessMap[role];
+        return roleRights && roleRights[right];
+      });
     }
   };
 
@@ -102,10 +216,11 @@ const createMockUserModel = () => {
 
     if (!user) return null;
 
-    // Добавляем метод comparePassword к возвращаемому объекту
+    // Добавляем методы к возвращаемому объекту
     const userWithMethods = {
       ...user,
-      comparePassword: methods.comparePassword
+      comparePassword: methods.comparePassword,
+      hasAccess: methods.hasAccess
     };
 
     // Метод select - убираем поле password если '-password'
@@ -138,11 +253,33 @@ const createMockUserModel = () => {
 
     if (!foundUser) return null;
 
-    // Добавляем метод comparePassword
+    // Добавляем методы
     return {
       ...foundUser,
-      comparePassword: methods.comparePassword
+      comparePassword: methods.comparePassword,
+      hasAccess: methods.hasAccess
     };
+  };
+
+  const find = (filter: any = {}) => {
+    logger.debug('Mock User.find called', { filter });
+
+    // Фильтрация пользователей по условию
+    let filteredUsers = [...mockUsers];
+
+    // Реализуем фильтрацию по ролям, если указано
+    if (filter.roles) {
+      filteredUsers = filteredUsers.filter(u =>
+        u.roles.some(r => filter.roles.includes(r))
+      );
+    }
+
+    // Возвращаем пользователей с методами
+    return filteredUsers.map(user => ({
+      ...user,
+      comparePassword: methods.comparePassword,
+      hasAccess: methods.hasAccess
+    }));
   };
 
   const create = async (userData: IUser) => {
@@ -172,29 +309,64 @@ const createMockUserModel = () => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(userData.password, salt);
 
+    // Если роли не указаны, устанавливаем роль USER по умолчанию
+    const roles = userData.roles && userData.roles.length > 0
+      ? userData.roles
+      : [UserRole.USER];
+
     // Создаем нового пользователя
     const newUser = {
       _id: new mongoose.Types.ObjectId(),
       ...userData,
-      password: hashedPassword
+      password: hashedPassword,
+      roles
     };
 
     // Добавляем пользователя в мок базу данных
     // В реальном приложении мы бы сохранили в MongoDB
     mockUsers.push(newUser as any);
 
-    // Добавляем метод comparePassword
+    // Добавляем методы
     return {
       ...newUser,
-      comparePassword: methods.comparePassword
+      comparePassword: methods.comparePassword,
+      hasAccess: methods.hasAccess
     };
+  };
+
+  const findByIdAndUpdate = async (id: string | mongoose.Types.ObjectId, updateData: any, options: any = {}) => {
+    logger.debug('Mock User.findByIdAndUpdate called', { id, updateData, options });
+
+    const userIndex = mockUsers.findIndex(u => u._id.toString() === id.toString());
+
+    if (userIndex === -1) return null;
+
+    // Создаем обновленный объект пользователя
+    const updatedUser = {
+      ...mockUsers[userIndex],
+      ...updateData.$set
+    };
+
+    // Обновляем пользователя в массиве
+    mockUsers[userIndex] = updatedUser;
+
+    // Добавляем методы
+    const userWithMethods = {
+      ...updatedUser,
+      comparePassword: methods.comparePassword,
+      hasAccess: methods.hasAccess
+    };
+
+    return options.new ? userWithMethods : mockUsers[userIndex];
   };
 
   // Возвращаем мок модели
   return {
     findById,
     findOne,
-    create
+    find,
+    create,
+    findByIdAndUpdate
   };
 };
 

@@ -4,10 +4,10 @@ import { useAuthStore } from '@/store/authStore';
 import { authEvents } from '@/api/api';
 import { logger } from '@/utils/logger';
 
-// Layouts
+// Макеты
 const MainLayout = lazy(() => import('@/components/layout/MainLayout'));
 
-// Pages
+// Страницы
 const HomePage = lazy(() => import('@/pages/Home'));
 const LoginPage = lazy(() => import('@/features/auth/pages/LoginPage'));
 const RegisterPage = lazy(() => import('@/features/auth/pages/RegisterPage'));
@@ -16,16 +16,16 @@ const CreateDocumentPage = lazy(() => import('@/features/documents/pages/CreateD
 const OutboxDocumentsPage = lazy(() => import('@/features/documents/pages/OutboxDocuments'));
 const AutomationPage = lazy(() => import('@/features/automation/pages/Automation'));
 const SettingsPage = lazy(() => import('@/features/settings/pages/Settings'));
-// Add more routes as needed
+// Добавьте дополнительные маршруты по мере необходимости
 
-// Fallback during lazy loading
+// Запасной вариант во время ленивой загрузки
 const LoadingFallback = () => (
   <div className="flex h-screen w-full items-center justify-center bg-gray-900">
     <div className="text-blue-400 text-xl">Загрузка...</div>
   </div>
 );
 
-// Protected route wrapper
+// Обертка для защищенного маршрута
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { token, checkAuth, isLoading } = useAuthStore();
   const [isChecking, setIsChecking] = useState(true);
@@ -127,7 +127,7 @@ const PublicOnlyRoute = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Debugging
+  // Отладка
   logger.debug('PublicOnlyRoute check', {
     hasToken: !!token,
     isLoading,
@@ -167,7 +167,7 @@ export const AppRouter = () => {
   return (
     <Suspense fallback={<LoadingFallback />}>
       <Routes>
-        {/* Public routes */}
+        {/* Публичные маршруты */}
         <Route path="/login" element={
           <PublicOnlyRoute>
             <LoginPage />
@@ -179,7 +179,7 @@ export const AppRouter = () => {
           </PublicOnlyRoute>
         } />
 
-        {/* Protected routes */}
+        {/* Защищенные маршруты */}
         <Route
           path="/"
           element={
@@ -194,10 +194,10 @@ export const AppRouter = () => {
           <Route path="outbox" element={<OutboxDocumentsPage />} />
           <Route path="automation" element={<AutomationPage />} />
           <Route path="settings" element={<SettingsPage />} />
-          {/* Add more routes as needed */}
+          {/* Добавьте дополнительные маршруты по мере необходимости */}
         </Route>
 
-        {/* Fallback for unknown routes */}
+        {/* Маршрут для неизвестных путей */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>

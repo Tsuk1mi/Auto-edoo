@@ -82,11 +82,11 @@ api.interceptors.request.use(
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      logger.debug(`Adding token to request: ${config.url}`);
+      logger.debug(`Добавление токена к запросу: ${config.url}`);
     }
 
     // Логируем детали запроса
-    logger.debug(`API Request: ${config.method?.toUpperCase()} ${config.url}`, {
+    logger.debug(`API запрос: ${config.method?.toUpperCase()} ${config.url}`, {
       url: config.url,
       method: config.method,
       params: config.params,
@@ -97,7 +97,7 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
-    logger.error('API Request interceptor error', {
+    logger.error('Ошибка в интерцепторе запроса API', {
       error: error.message,
       stack: error.stack
     });
@@ -105,14 +105,14 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor
+// Интерцептор ответа
 api.interceptors.response.use(
   (response) => {
     const responseTime = response.headers['x-response-time']
       ? Number(response.headers['x-response-time'])
       : 'unknown';
 
-    logger.debug(`API Response: ${response.status} for ${response.config.url}`, {
+    logger.debug(`API ответ: ${response.status} для ${response.config.url}`, {
       url: response.config.url,
       status: response.status,
       responseTime,
@@ -124,7 +124,7 @@ api.interceptors.response.use(
   },
   (error: AxiosError<ApiResponse<any>>) => {
     // Расширенное логирование ошибок
-    logger.error('API Error', {
+    logger.error('Ошибка API', {
       url: error.config?.url,
       method: error.config?.method,
       status: error.response?.status,
@@ -133,13 +133,13 @@ api.interceptors.response.use(
       code: error.code
     });
 
-    // Handle unauthorized errors (401)
+    // Обработка ошибок авторизации (401)
     if (error.response?.status === 401) {
-      // Clear token and dispatch event
+      // Очищаем токен и отправляем событие
       const hadToken = !!localStorage.getItem('token');
       localStorage.removeItem('token');
 
-      logger.warn('Unauthorized error - clearing token and dispatching event', {
+      logger.warn('Ошибка авторизации - очистка токена и отправка события', {
         hadToken,
         url: error.config?.url,
       });
@@ -154,7 +154,7 @@ api.interceptors.response.use(
 
     // Показываем уведомления для ошибок сервера
     if (error.response?.status && error.response.status >= 500) {
-      logger.error('Server error', {
+      logger.error('Ошибка сервера', {
         status: error.response.status,
         message: error.response?.data?.message || 'Неизвестная ошибка'
       });
@@ -176,7 +176,7 @@ export const apiRequest = async <T = any>(config: RequestConfig): Promise<T> => 
       await new Promise(resolve => setTimeout(resolve, SIMULATE_DELAY));
     }
 
-    logger.debug(`API Request: ${config.method} ${config.url}`, {
+    logger.debug(`API запрос: ${config.method} ${config.url}`, {
       config: {
         url: config.url,
         method: config.method,
@@ -194,7 +194,7 @@ export const apiRequest = async <T = any>(config: RequestConfig): Promise<T> => 
 
     // Проверяем успешность ответа
     if (response.data && response.data.success === false) {
-      logger.warn(`API request returned success: false`, {
+      logger.warn(`API запрос вернул успех: false`, {
         url: config.url,
         message: response.data.message
       });
@@ -210,7 +210,7 @@ export const apiRequest = async <T = any>(config: RequestConfig): Promise<T> => 
     return response.data as unknown as T;
   } catch (error: any) {
     if (error instanceof UnauthorizedError) {
-      logger.warn('Caught unauthorized error in apiRequest', {
+      logger.warn('Перехвачена ошибка авторизации в apiRequest', {
         url: config.url,
         message: error.message
       });
@@ -220,7 +220,7 @@ export const apiRequest = async <T = any>(config: RequestConfig): Promise<T> => 
     if (error.response) {
       // Ошибка с сервера с кодом статуса
       const errorMessage = error.response.data?.message || 'Ошибка сервера';
-      logger.error(`API Error (${error.response.status})`, {
+      logger.error(`Ошибка API (${error.response.status})`, {
         url: config.url,
         status: error.response.status,
         message: errorMessage
@@ -228,14 +228,14 @@ export const apiRequest = async <T = any>(config: RequestConfig): Promise<T> => 
       throw new Error(errorMessage);
     } else if (error.request) {
       // Запрос был сделан, но ответа не получено
-      logger.error('Network Error: No response received', {
+      logger.error('Ошибка сети: Ответ не получен', {
         url: config.url,
         request: error.request
       });
       throw new Error('Нет ответа от сервера. Проверьте интернет-соединение.');
     } else {
       // Что-то произошло при настройке запроса
-      logger.error('Request Error', {
+      logger.error('Ошибка запроса', {
         url: config.url,
         message: error.message,
         stack: error.stack

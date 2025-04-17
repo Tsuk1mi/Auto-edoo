@@ -64,11 +64,20 @@ const LoginPage = () => {
 
   // Для упрощения тестирования демо-режима
   const setDemoCredentials = () => {
+    logger.debug("Demo credentials set and submitting form");
+
+    // Устанавливаем демо-данные
     setCredentials({
       email: 'user@example.com',
       password: 'password123'
     });
-    logger.debug("Demo credentials set");
+
+    // Автоматически выполняем вход через небольшую задержку,
+    // чтобы состояние успело обновиться
+    setTimeout(() => {
+      const fakeEvent = { preventDefault: () => {} } as React.FormEvent;
+      handleSubmit(fakeEvent);
+    }, 100);
   };
 
   return (
