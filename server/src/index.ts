@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import mongoose from 'mongoose';
 import config from './config/index.ts';
@@ -14,8 +15,20 @@ import { logger } from './utils/logger.ts';
 // Создание директории для логов, если ее нет
 const logDir = path.join(process.cwd(), 'logs');
 const apiLogDir = path.join(logDir, 'api');
-if (!fs.existsSync(logDir)) fs.mkdirSync(logDir);
-if (!fs.existsSync(apiLogDir)) fs.mkdirSync(apiLogDir);
+try {
+  if (!fs.existsSync(logDir)) fs.mkdirSync(logDir, { recursive: true });
+  if (!fs.existsSync(apiLogDir)) fs.mkdirSync(apiLogDir, { recursive: true });
+  logger.info('Log directories created or verified', {
+    logDir,
+    apiLogDir
+  });
+} catch (error) {
+  logger.error('Failed to create log directories', {
+    error: error instanceof Error ? error.message : String(error),
+    logDir,
+    apiLogDir
+  });
+}
 
 // Инициализация приложения Express
 const app = express();
@@ -28,9 +41,34 @@ logger.info('Server starting with config', {
 });
 
 // Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(cors({
+  origin: config.corsOrigin,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+
+// Устанавливаем лимит размера запроса
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Добавляем заголовки безопасности
+app.use((req, res, next) => {
+  // Устанавливаем заголовки безопасности
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+
+  // Запрещаем кэширование для API запросов
+  if (req.path.startsWith('/api/')) {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+  }
+
+  next();
+});
 
 // Middleware для логирования запросов
 app.use((req, res, next) => {

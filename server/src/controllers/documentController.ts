@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import Document, { type DocumentType, type DocumentStatus } from '../models/documentModel';
 import mongoose from 'mongoose';
+import { logger } from '../utils/logger';
 
 // Стандартный формат ответа
 interface ApiResponse<T = any> {
@@ -65,6 +66,14 @@ export const getDocuments = async (req: Request, res: Response) => {
       .limit(limitNum)
       .lean();
 
+    logger.debug('Documents retrieved successfully', {
+      userId: req.userId,
+      count: documents.length,
+      total,
+      page: pageNum,
+      limit: limitNum
+    });
+
     res.json({
       success: true,
       data: documents.map(doc => ({
@@ -85,7 +94,12 @@ export const getDocuments = async (req: Request, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('Ошибка при получении документов:', error);
+    logger.error('Error retrieving documents', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : 'No stack available',
+      userId: req.userId
+    });
+
     res.status(500).json({
       success: false,
       message: 'Ошибка сервера при получении документов',
@@ -137,7 +151,11 @@ export const getDocumentById = async (req: Request, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('Ошибка при получении документа:', error);
+    logger.error('Ошибка при получении документа:', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : 'No stack available',
+      userId: req.userId
+    });
     res.status(500).json({
       success: false,
       message: 'Ошибка сервера при получении документа',
@@ -151,7 +169,19 @@ export const createDocument = async (req: Request, res: Response) => {
   try {
     const { name, type, content } = req.body;
 
+    logger.debug('Create document request', {
+      userId: req.userId,
+      documentName: name,
+      documentType: type
+    });
+
     if (!name || !type) {
+      logger.warn('Invalid document creation request - missing fields', {
+        userId: req.userId,
+        name: !!name,
+        type: !!type
+      });
+
       return res.status(400).json({
         success: false,
         message: 'Пожалуйста, укажите название и тип документа'
@@ -160,6 +190,12 @@ export const createDocument = async (req: Request, res: Response) => {
 
     // Проверка типа документа
     if (!['contract', 'invoice', 'report'].includes(type)) {
+      logger.warn('Invalid document type', {
+        userId: req.userId,
+        documentName: name,
+        invalidType: type
+      });
+
       return res.status(400).json({
         success: false,
         message: 'Неверный тип документа. Допустимые типы: contract, invoice, report'
@@ -172,6 +208,13 @@ export const createDocument = async (req: Request, res: Response) => {
       content,
       author: req.userId,
       status: 'pending',
+    });
+
+    logger.info('Document created successfully', {
+      userId: req.userId,
+      documentId: newDocument._id,
+      documentName: newDocument.name,
+      documentType: newDocument.type
     });
 
     res.status(201).json({
@@ -189,7 +232,13 @@ export const createDocument = async (req: Request, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('Ошибка при создании документа:', error);
+    logger.error('Error creating document', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : 'No stack available',
+      userId: req.userId,
+      requestBody: req.body
+    });
+
     res.status(500).json({
       success: false,
       message: 'Ошибка сервера при создании документа',
@@ -267,7 +316,11 @@ export const updateDocument = async (req: Request, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('Ошибка при обновлении документа:', error);
+    logger.error('Ошибка при обновлении документа:', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : 'No stack available',
+      userId: req.userId
+    });
     res.status(500).json({
       success: false,
       message: 'Ошибка сервера при обновлении документа',
@@ -312,7 +365,11 @@ export const deleteDocument = async (req: Request, res: Response) => {
       message: 'Документ успешно удален'
     });
   } catch (error) {
-    console.error('Ошибка при удалении документа:', error);
+    logger.error('Ошибка при удалении документа:', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : 'No stack available',
+      userId: req.userId
+    });
     res.status(500).json({
       success: false,
       message: 'Ошибка сервера при удалении документа',
@@ -370,7 +427,11 @@ export const getDocumentStats = async (req: Request, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('Ошибка при получении статистики:', error);
+    logger.error('Ошибка при получении статистики:', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : 'No stack available',
+      userId: req.userId
+    });
     res.status(500).json({
       success: false,
       message: 'Ошибка сервера при получении статистики',

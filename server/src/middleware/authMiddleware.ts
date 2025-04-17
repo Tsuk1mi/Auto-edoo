@@ -27,6 +27,9 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
     // Проверяем наличие токена в заголовке
     if (req.headers.authorization?.startsWith('Bearer')) {
       token = req.headers.authorization.split(' ')[1];
+    } else if (req.query.token) {
+      // Поддержка токена через query параметр для совместимости
+      token = req.query.token as string;
     }
 
     if (!token) {
@@ -41,62 +44,66 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
       });
     }
 
-    // Верифицируем токен
-    const decoded = jwt.verify(token, config.jwtSecret) as JwtPayload;
+    try {
+      // Верифицируем токен
+      const decoded = jwt.verify(token, config.jwtSecret) as JwtPayload;
 
-    // Ищем пользователя по ID из токена
-    const user = await User.findById(decoded.id).select('-password');
+      // Ищем пользователя по ID из токена
+      const user = await User.findById(decoded.id).select('-password');
 
-    if (!user) {
-      logger.warn('Authentication failed - user from token not found', {
+      if (!user) {
+        logger.warn('Authentication failed - user from token not found', {
+          userId: decoded.id,
+          path: req.path,
+          tokenIat: decoded.iat,
+          tokenExp: decoded.exp
+        });
+        return res.status(401).json({
+          success: false,
+          message: 'Пользователь с таким токеном не найден'
+        });
+      }
+
+      // Добавляем пользователя в request
+      req.user = user;
+      req.userId = decoded.id;
+
+      logger.debug('User authenticated successfully', {
         userId: decoded.id,
         path: req.path,
-        tokenIat: decoded.iat,
-        tokenExp: decoded.exp
+        method: req.method
       });
-      return res.status(401).json({
-        success: false,
-        message: 'Пользователь с таким токеном не найден'
-      });
+
+      next();
+    } catch (error) {
+      if (error instanceof jwt.JsonWebTokenError) {
+        logger.warn('Authentication failed - invalid token', {
+          error: error.message,
+          path: req.path,
+          method: req.method,
+          ip: req.ip
+        });
+        return res.status(401).json({
+          success: false,
+          message: 'Недействительный токен'
+        });
+      } else if (error instanceof jwt.TokenExpiredError) {
+        logger.warn('Authentication failed - token expired', {
+          error: error.message,
+          path: req.path,
+          method: req.method,
+          ip: req.ip,
+          expiredAt: error.expiredAt
+        });
+        return res.status(401).json({
+          success: false,
+          message: 'Срок действия токена истек'
+        });
+      }
+
+      throw error; // Прокинуть ошибку дальше, чтобы основной обработчик поймал ее
     }
-
-    // Добавляем пользователя в request
-    req.user = user;
-    req.userId = decoded.id;
-
-    logger.debug('User authenticated successfully', {
-      userId: decoded.id,
-      path: req.path,
-      method: req.method
-    });
-
-    next();
   } catch (error) {
-    if (error instanceof jwt.JsonWebTokenError) {
-      logger.warn('Authentication failed - invalid token', {
-        error: error.message,
-        path: req.path,
-        method: req.method,
-        ip: req.ip
-      });
-      return res.status(401).json({
-        success: false,
-        message: 'Недействительный токен'
-      });
-    } else if (error instanceof jwt.TokenExpiredError) {
-      logger.warn('Authentication failed - token expired', {
-        error: error.message,
-        path: req.path,
-        method: req.method,
-        ip: req.ip,
-        expiredAt: error.expiredAt
-      });
-      return res.status(401).json({
-        success: false,
-        message: 'Срок действия токена истек'
-      });
-    }
-
     logger.error('Authentication error', {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : 'No stack available',
