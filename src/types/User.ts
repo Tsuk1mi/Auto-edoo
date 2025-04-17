@@ -5,14 +5,13 @@ export interface User {
   fullName: string;
   avatar?: string;
   roles: UserRole[];
+  customAccess?: CustomAccessRights; // Новое поле для пользовательских прав
 }
 
 // Перечисление ролей пользователя
 export enum UserRole {
   ADMIN = 'admin',
-  USER = 'user',
-  MANAGER = 'manager',
-  INVENTORY = 'inventory'
+  USER = 'user'
 }
 
 // Интерфейс прав доступа
@@ -25,6 +24,20 @@ export interface AccessRights {
   canAccessAdmin: boolean;
   canManageUsers: boolean;
   canViewExternalSystems: boolean;
+}
+
+// Интерфейс для настраиваемых ролей
+export interface CustomRole {
+  id: string;
+  name: string;
+  description: string;
+  access: AccessRights;
+}
+
+// Интерфейс для настраиваемых прав пользователя
+export interface CustomAccessRights {
+  roleIds: string[]; // ID настраиваемых ролей
+  overrides?: Partial<AccessRights>; // Переопределение прав доступа
 }
 
 // Объект доступа для ролей
@@ -45,26 +58,6 @@ export const roleAccessMap: Record<UserRole, AccessRights> = {
     canEditDocuments: false,
     canViewInventory: false,
     canManageInventory: false,
-    canAccessAdmin: false,
-    canManageUsers: false,
-    canViewExternalSystems: false
-  },
-  [UserRole.MANAGER]: {
-    canViewDocuments: true,
-    canCreateDocuments: true,
-    canEditDocuments: true,
-    canViewInventory: true,
-    canManageInventory: false,
-    canAccessAdmin: false,
-    canManageUsers: false,
-    canViewExternalSystems: true
-  },
-  [UserRole.INVENTORY]: {
-    canViewDocuments: true,
-    canCreateDocuments: false,
-    canEditDocuments: false,
-    canViewInventory: true,
-    canManageInventory: true,
     canAccessAdmin: false,
     canManageUsers: false,
     canViewExternalSystems: false
@@ -94,8 +87,22 @@ export const hasAccess = (user: User | null, right: keyof AccessRights): boolean
     return false;
   }
 
-  return user.roles.some(role => {
+  // Сначала проверяем базовые роли
+  const hasRoleAccess = user.roles.some(role => {
     const roleRights = roleAccessMap[role as UserRole];
     return roleRights && roleRights[right];
   });
+
+  // Если есть доступ по роли, то разрешаем
+  if (hasRoleAccess) return true;
+
+  // Проверяем настраиваемые права пользователя
+  if (user.customAccess) {
+    // Если есть явные переопределения
+    if (user.customAccess.overrides && user.customAccess.overrides[right] !== undefined) {
+      return user.customAccess.overrides[right] === true;
+    }
+  }
+
+  return false;
 };

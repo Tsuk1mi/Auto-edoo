@@ -269,12 +269,12 @@ const DocumentList = () => {
           </div>
         </div>
 
-        {isLoading ? (
+        {isLoading && documents.length === 0 ? (
           <div className="text-center py-16">
             <i className="fas fa-circle-notch fa-spin text-blue-400 text-3xl mb-3" />
             <p className="text-gray-400">Загрузка документов...</p>
           </div>
-        ) : error ? (
+        ) : error && documents.length === 0 ? (
           <div className="bg-red-900/30 border border-red-800 text-red-300 p-4 rounded-lg">
             {error}
           </div>
@@ -310,6 +310,21 @@ const DocumentList = () => {
                 />
               ))}
             </div>
+
+            {/* Показываем ошибку над результатами, если она есть и есть загруженные документы */}
+            {error && documents.length > 0 && (
+              <div className="mt-4 bg-red-900/30 border border-red-800 text-red-300 p-4 rounded-lg">
+                {error}
+              </div>
+            )}
+
+            {/* Показываем индикатор загрузки внизу, если идет загрузка и есть документы */}
+            {isLoading && documents.length > 0 && (
+              <div className="mt-4 text-center py-3">
+                <i className="fas fa-circle-notch fa-spin text-blue-400 text-xl mr-2" />
+                <span className="text-gray-400">Обновление...</span>
+              </div>
+            )}
 
             {renderPagination()}
           </>

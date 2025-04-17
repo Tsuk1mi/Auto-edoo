@@ -13,16 +13,19 @@
 [context.production.environment]
   VITE_API_URL = "https://api.edo-app.domain.com/api"
   NODE_ENV = "production"
+  VITE_DEMO_MODE = "false"
 
 # Настройки для превью-деплоя
 [context.deploy-preview.environment]
   VITE_API_URL = "https://api-staging.edo-app.domain.com/api"
   NODE_ENV = "staging"
+  VITE_DEMO_MODE = "false"
 
 # Настройки для ветки разработки
 [context.develop.environment]
   VITE_API_URL = "https://api-dev.edo-app.domain.com/api"
   NODE_ENV = "development"
+  VITE_DEMO_MODE = "true"
 
 # Настройки для API прокси в production
 [[redirects]]

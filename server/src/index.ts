@@ -1,15 +1,14 @@
 import express from 'express';
-import mongoose from 'mongoose';
 import cors from 'cors';
 import path from 'path';
-import fs from 'fs';
+import { fileURLToPath } from 'url';
+import mongoose from 'mongoose';
 import config from './config/index.ts';
 import authRoutes from './routes/authRoutes.ts';
 import documentRoutes from './routes/documentRoutes.ts';
 import integrationRoutes from './routes/integrationRoutes.ts';
 import apiLogsRoutes from './routes/apiLogsRoutes.ts';
-import inventoryRoutes from './routes/inventoryRoutes.ts';
-import adminRoutes from './routes/adminRoutes.ts';
+import roleRoutes from './routes/roleRoutes.ts'; // Импортируем маршруты ролей
 import { logger } from './utils/logger.ts';
 
 // Создание директории для логов, если ее нет
@@ -91,8 +90,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/documents', documentRoutes);
 app.use('/api/integration', integrationRoutes);
 app.use('/api/logs', apiLogsRoutes);
-app.use('/api/inventory', inventoryRoutes);
-app.use('/api/admin', adminRoutes);
+app.use('/api/roles', roleRoutes); // Новый маршрут для управления ролями
 
 // Здоровье API
 app.get('/api/health', (req, res) => {

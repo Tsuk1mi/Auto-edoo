@@ -5,9 +5,7 @@ import { logger } from '../utils/logger.ts';
 // Добавляем возможные роли пользователей
 export enum UserRole {
   ADMIN = 'admin',
-  USER = 'user',
-  MANAGER = 'manager',
-  INVENTORY = 'inventory'
+  USER = 'user'
 }
 
 // Добавляем набор прав доступа
@@ -20,6 +18,20 @@ export interface AccessRights {
   canAccessAdmin: boolean;
   canManageUsers: boolean;
   canViewExternalSystems: boolean;
+}
+
+// Интерфейс для настраиваемой роли
+export interface CustomRole {
+  id: string;
+  name: string;
+  description: string;
+  access: AccessRights;
+}
+
+// Интерфейс для настраиваемых прав пользователя
+export interface CustomAccessRights {
+  roleIds: string[]; // ID настраиваемых ролей
+  overrides?: Partial<AccessRights>; // Переопределение прав доступа
 }
 
 // Объект с правами доступа для каждой роли
@@ -43,28 +55,11 @@ export const roleAccessMap: Record<UserRole, AccessRights> = {
     canAccessAdmin: false,
     canManageUsers: false,
     canViewExternalSystems: false
-  },
-  [UserRole.MANAGER]: {
-    canViewDocuments: true,
-    canCreateDocuments: true,
-    canEditDocuments: true,
-    canViewInventory: true,
-    canManageInventory: false,
-    canAccessAdmin: false,
-    canManageUsers: false,
-    canViewExternalSystems: true
-  },
-  [UserRole.INVENTORY]: {
-    canViewDocuments: true,
-    canCreateDocuments: false,
-    canEditDocuments: false,
-    canViewInventory: true,
-    canManageInventory: true,
-    canAccessAdmin: false,
-    canManageUsers: false,
-    canViewExternalSystems: false
   }
 };
+
+// Глобальное хранилище для настраиваемых ролей (в демо-режиме)
+export const customRoles: CustomRole[] = [];
 
 export interface IUser {
   username: string;
@@ -73,6 +68,7 @@ export interface IUser {
   fullName: string;
   avatar?: string;
   roles: UserRole[];
+  customAccess?: CustomAccessRights;
 }
 
 export interface IUserDocument extends IUser, mongoose.Document {
@@ -109,6 +105,10 @@ const userSchema = new mongoose.Schema<IUserDocument>(
       type: [String],
       enum: Object.values(UserRole),
       default: [UserRole.USER]
+    },
+    customAccess: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null
     }
   },
   { timestamps: true }
@@ -138,11 +138,33 @@ userSchema.methods.hasAccess = function (right: keyof AccessRights): boolean {
     return false;
   }
 
-  // Проверяем, есть ли у пользователя хотя бы одна роль, дающая указанное право
-  return this.roles.some(role => {
+  // Проверяем сначала базовые роли
+  const hasRoleAccess = this.roles.some(role => {
     const roleRights = roleAccessMap[role as UserRole];
     return roleRights && roleRights[right];
   });
+
+  // Если есть доступ по роли, то разрешаем
+  if (hasRoleAccess) return true;
+
+  // Проверяем настраиваемые права пользователя
+  if (this.customAccess) {
+    // Если есть явные переопределения
+    if (this.customAccess.overrides && this.customAccess.overrides[right] !== undefined) {
+      return this.customAccess.overrides[right] === true;
+    }
+
+    // Проверяем по настраиваемым ролям
+    if (this.customAccess.roleIds && this.customAccess.roleIds.length > 0) {
+      const userCustomRoles = customRoles.filter(
+        role => this.customAccess.roleIds.includes(role.id)
+      );
+
+      return userCustomRoles.some(role => role.access[right]);
+    }
+  }
+
+  return false;
 };
 
 // Мок пользовательских данных для режима разработки без БД
@@ -164,24 +186,6 @@ const mockUsers = [
     fullName: 'Тестовый Пользователь',
     avatar: 'https://avatars.githubusercontent.com/u/2?v=4',
     roles: [UserRole.USER]
-  },
-  {
-    _id: new mongoose.Types.ObjectId('60d0fe4f5311236168a109cc'),
-    username: 'manager',
-    email: 'manager@example.com',
-    password: '$2b$10$zQSWDY6Uy4JGK/i6IwAGf.1fZfYUzzeHy0r6ETnKH.gfDrJFTvxFG', // пароль: password123
-    fullName: 'Менеджер Проекта',
-    avatar: 'https://avatars.githubusercontent.com/u/3?v=4',
-    roles: [UserRole.MANAGER]
-  },
-  {
-    _id: new mongoose.Types.ObjectId('60d0fe4f5311236168a109cd'),
-    username: 'inventory',
-    email: 'inventory@example.com',
-    password: '$2b$10$zQSWDY6Uy4JGK/i6IwAGf.1fZfYUzzeHy0r6ETnKH.gfDrJFTvxFG', // пароль: password123
-    fullName: 'Кладовщик',
-    avatar: 'https://avatars.githubusercontent.com/u/4?v=4',
-    roles: [UserRole.INVENTORY]
   }
 ];
 
@@ -202,10 +206,34 @@ const createMockUserModel = () => {
       if (!this.roles || this.roles.length === 0) {
         return false;
       }
-      return this.roles.some((role: UserRole) => {
+
+      // Проверяем сначала базовые роли
+      const hasRoleAccess = this.roles.some((role: UserRole) => {
         const roleRights = roleAccessMap[role];
         return roleRights && roleRights[right];
       });
+
+      // Если есть доступ по роли, то разрешаем
+      if (hasRoleAccess) return true;
+
+      // Проверяем настраиваемые права пользователя
+      if (this.customAccess) {
+        // Если есть явные переопределения
+        if (this.customAccess.overrides && this.customAccess.overrides[right] !== undefined) {
+          return this.customAccess.overrides[right] === true;
+        }
+
+        // Проверяем по настраиваемым ролям
+        if (this.customAccess.roleIds && this.customAccess.roleIds.length > 0) {
+          const userCustomRoles = customRoles.filter(
+            role => this.customAccess.roleIds.includes(role.id)
+          );
+
+          return userCustomRoles.some(role => role.access[right]);
+        }
+      }
+
+      return false;
     }
   };
 
@@ -360,17 +388,75 @@ const createMockUserModel = () => {
     return options.new ? userWithMethods : mockUsers[userIndex];
   };
 
+  // Метод для создания и управления настраиваемыми ролями
+  const createCustomRole = (roleData: Omit<CustomRole, 'id'>) => {
+    logger.debug('Mock createCustomRole called', { roleData });
+
+    const newRole: CustomRole = {
+      id: new mongoose.Types.ObjectId().toString(),
+      ...roleData
+    };
+
+    customRoles.push(newRole);
+    return newRole;
+  };
+
+  const getCustomRoles = () => {
+    logger.debug('Mock getCustomRoles called');
+    return [...customRoles];
+  };
+
+  const updateCustomRole = (id: string, roleData: Partial<Omit<CustomRole, 'id'>>) => {
+    logger.debug('Mock updateCustomRole called', { id, roleData });
+
+    const roleIndex = customRoles.findIndex(role => role.id === id);
+    if (roleIndex === -1) return null;
+
+    customRoles[roleIndex] = {
+      ...customRoles[roleIndex],
+      ...roleData
+    };
+
+    return customRoles[roleIndex];
+  };
+
+  const deleteCustomRole = (id: string) => {
+    logger.debug('Mock deleteCustomRole called', { id });
+
+    const roleIndex = customRoles.findIndex(role => role.id === id);
+    if (roleIndex === -1) return false;
+
+    customRoles.splice(roleIndex, 1);
+
+    // Также удаляем эту роль у всех пользователей
+    mockUsers.forEach(user => {
+      if (user.customAccess && user.customAccess.roleIds) {
+        user.customAccess.roleIds = user.customAccess.roleIds.filter(roleId => roleId !== id);
+      }
+    });
+
+    return true;
+  };
+
   // Возвращаем мок модели
   return {
     findById,
     findOne,
     find,
     create,
-    findByIdAndUpdate
+    findByIdAndUpdate,
+    // Дополнительные методы для управления ролями
+    customRoles: {
+      create: createCustomRole,
+      getAll: getCustomRoles,
+      update: updateCustomRole,
+      delete: deleteCustomRole
+    }
   };
 };
 
 // Экспортируем либо реальную модель, либо мок в зависимости от режима
+const isDev = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'development-no-db';
 const isNoDB = process.env.NODE_ENV === 'development-no-db';
 const UserModel = isNoDB
   ? createMockUserModel() as any

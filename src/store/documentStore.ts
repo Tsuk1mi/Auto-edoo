@@ -51,7 +51,13 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
   filters: {},
 
   fetchDocuments: async (params?: GetDocumentsParams) => {
-    set({ isLoading: true, error: null });
+    // Только устанавливаем isLoading: true если документы еще не загружены
+    const currentDocuments = get().documents;
+    set({
+      isLoading: currentDocuments.length === 0,
+      error: null
+    });
+
     try {
       // Объединяем сохраненные фильтры с новыми параметрами
       const currentFilters = get().filters;
@@ -71,7 +77,13 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Ошибка при загрузке документов';
-      set({ isLoading: false, error: errorMessage });
+      // Если есть уже загруженные документы, мы сохраняем их и показываем ошибку в отдельном поле
+      // вместо очистки документов, что вызывает мерцание
+      set((state) => ({
+        isLoading: false,
+        error: errorMessage,
+        documents: state.documents // Сохраняем текущие документы
+      }));
     }
   },
 
