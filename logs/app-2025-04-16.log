@@ -1,0 +1,68 @@
+[2025-04-16T08:11:13.213Z] [INFO] [same] [edo-app-server] Logger initialized {"env":"development-no-db","logLevel":"DEBUG","hostname":"same","consoleEnabled":true,"fileEnabled":true,"logDir":"/home/project/project/edo-project/logs"}
+[2025-04-16T08:11:13.217Z] [WARN] [same] [edo-app-server] Using mock User model for development without DB 
+[2025-04-16T08:11:13.221Z] [WARN] [same] [edo-app-server] Using mock Document model for development without DB 
+[2025-04-16T08:11:13.223Z] [INFO] [same] [edo-app-server] Server initializing {"node_version":"v22.6.0","platform":"linux","arch":"arm64","pid":220,"env":"development-no-db"}
+[2025-04-16T08:11:13.224Z] [WARN] [same] [edo-app-server] Running without database connection 
+[2025-04-16T08:11:13.233Z] [INFO] [same] [edo-app-server] Server started on port 5000 {"env":"development-no-db","port":5000,"pid":220,"memory":{"rss":123097088,"heapTotal":9701376,"heapUsed":30132772,"external":22542839,"arrayBuffers":420592}}
+[2025-04-16T08:11:18.735Z] [INFO] [same] [edo-app-server] HTTP GET /health {"requestId":"req_1744791078735_gwdal14","method":"GET","url":"/health","ip":"::1","userAgent":"curl/8.5.0"}
+[2025-04-16T08:11:18.738Z] [INFO] [same] [edo-app-server] HTTP GET /health 200 3ms {"requestId":"req_1744791078735_gwdal14","method":"GET","url":"/health","statusCode":200,"responseTime":3,"ip":"::1"}
+[2025-04-16T08:11:33.535Z] [INFO] [same] [edo-app-server] HTTP GET / {"requestId":"req_1744791093534_rmgi8oh","method":"GET","url":"/","ip":"::ffff:172.31.35.218","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"}
+[2025-04-16T08:11:33.535Z] [WARN] [same] [edo-app-server] Route not found: GET / 
+[2025-04-16T08:11:33.535Z] [INFO] [same] [edo-app-server] HTTP GET / 404 1ms {"requestId":"req_1744791093534_rmgi8oh","method":"GET","url":"/","statusCode":404,"responseTime":1,"ip":"::ffff:172.31.35.218"}
+[2025-04-16T08:11:38.569Z] [INFO] [same] [edo-app-server] HTTP GET /health {"requestId":"req_1744791098569_vy2ti06","method":"GET","url":"/health","ip":"::1","userAgent":"curl/8.5.0"}
+[2025-04-16T08:11:38.569Z] [INFO] [same] [edo-app-server] HTTP GET /health 200 0ms {"requestId":"req_1744791098569_vy2ti06","method":"GET","url":"/health","statusCode":200,"responseTime":0,"ip":"::1"}
+[2025-04-16T08:12:27.052Z] [INFO] [same] [edo-app-server] HTTP GET / {"requestId":"req_1744791147052_016r8kz","method":"GET","url":"/","ip":"::ffff:172.31.35.218","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"}
+[2025-04-16T08:12:27.053Z] [WARN] [same] [edo-app-server] Route not found: GET / 
+[2025-04-16T08:12:27.053Z] [INFO] [same] [edo-app-server] HTTP GET / 404 1ms {"requestId":"req_1744791147052_016r8kz","method":"GET","url":"/","statusCode":404,"responseTime":1,"ip":"::ffff:172.31.35.218"}
+[2025-04-16T08:12:42.322Z] [INFO] [same] [edo-app-server] HTTP GET / {"requestId":"req_1744791162322_p2u1h9b","method":"GET","url":"/","ip":"::ffff:172.31.35.218","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"}
+[2025-04-16T08:12:42.322Z] [WARN] [same] [edo-app-server] Route not found: GET / 
+[2025-04-16T08:12:42.322Z] [INFO] [same] [edo-app-server] HTTP GET / 404 0ms {"requestId":"req_1744791162322_p2u1h9b","method":"GET","url":"/","statusCode":404,"responseTime":0,"ip":"::ffff:172.31.35.218"}
+[2025-04-16T08:12:55.593Z] [INFO] [same] [edo-app-server] HTTP GET / {"requestId":"req_1744791175593_dq1sn5y","method":"GET","url":"/","ip":"::ffff:172.31.35.218","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"}
+[2025-04-16T08:12:55.593Z] [WARN] [same] [edo-app-server] Route not found: GET / 
+[2025-04-16T08:12:55.593Z] [INFO] [same] [edo-app-server] HTTP GET / 404 0ms {"requestId":"req_1744791175593_dq1sn5y","method":"GET","url":"/","statusCode":404,"responseTime":0,"ip":"::ffff:172.31.35.218"}
+[2025-04-16T08:13:18.821Z] [INFO] [same] [edo-app-server] HTTP GET / {"requestId":"req_1744791198821_391g0xu","method":"GET","url":"/","ip":"::ffff:172.31.35.218","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"}
+[2025-04-16T08:13:18.821Z] [WARN] [same] [edo-app-server] Route not found: GET / 
+[2025-04-16T08:13:18.821Z] [INFO] [same] [edo-app-server] HTTP GET / 404 0ms {"requestId":"req_1744791198821_391g0xu","method":"GET","url":"/","statusCode":404,"responseTime":0,"ip":"::ffff:172.31.35.218"}
+[2025-04-16T08:13:30.717Z] [INFO] [same] [edo-app-server] HTTP GET / {"requestId":"req_1744791210716_bfvztaf","method":"GET","url":"/","ip":"::ffff:172.31.35.218","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"}
+[2025-04-16T08:13:30.717Z] [WARN] [same] [edo-app-server] Route not found: GET / 
+[2025-04-16T08:13:30.717Z] [INFO] [same] [edo-app-server] HTTP GET / 404 0ms {"requestId":"req_1744791210716_bfvztaf","method":"GET","url":"/","statusCode":404,"responseTime":0,"ip":"::ffff:172.31.35.218"}
+[2025-04-16T08:13:55.583Z] [INFO] [same] [edo-app-server] HTTP GET / {"requestId":"req_1744791235583_nso0dhe","method":"GET","url":"/","ip":"::ffff:172.31.35.218","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"}
+[2025-04-16T08:13:55.583Z] [WARN] [same] [edo-app-server] Route not found: GET / 
+[2025-04-16T08:13:55.583Z] [INFO] [same] [edo-app-server] HTTP GET / 404 0ms {"requestId":"req_1744791235583_nso0dhe","method":"GET","url":"/","statusCode":404,"responseTime":0,"ip":"::ffff:172.31.35.218"}
+[2025-04-16T08:14:08.889Z] [INFO] [same] [edo-app-server] HTTP GET / {"requestId":"req_1744791248889_1z1ddkn","method":"GET","url":"/","ip":"::ffff:172.31.35.218","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"}
+[2025-04-16T08:14:08.889Z] [WARN] [same] [edo-app-server] Route not found: GET / 
+[2025-04-16T08:14:08.890Z] [INFO] [same] [edo-app-server] HTTP GET / 404 1ms {"requestId":"req_1744791248889_1z1ddkn","method":"GET","url":"/","statusCode":404,"responseTime":1,"ip":"::ffff:172.31.35.218"}
+[2025-04-16T08:14:19.896Z] [INFO] [same] [edo-app-server] HTTP GET / {"requestId":"req_1744791259896_p8bvdu8","method":"GET","url":"/","ip":"::ffff:172.31.35.218","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"}
+[2025-04-16T08:14:19.896Z] [WARN] [same] [edo-app-server] Route not found: GET / 
+[2025-04-16T08:14:19.896Z] [INFO] [same] [edo-app-server] HTTP GET / 404 0ms {"requestId":"req_1744791259896_p8bvdu8","method":"GET","url":"/","statusCode":404,"responseTime":0,"ip":"::ffff:172.31.35.218"}
+[2025-04-16T08:15:43.692Z] [INFO] [same] [edo-app-server] HTTP GET /health {"requestId":"req_1744791343692_u9v7dem","method":"GET","url":"/health","ip":"::1","userAgent":"curl/8.5.0"}
+[2025-04-16T08:15:43.692Z] [INFO] [same] [edo-app-server] HTTP GET /health 200 0ms {"requestId":"req_1744791343692_u9v7dem","method":"GET","url":"/health","statusCode":200,"responseTime":0,"ip":"::1"}
+[2025-04-16T08:16:09.074Z] [INFO] [same] [edo-app-server] HTTP GET / {"requestId":"req_1744791369074_azy86mx","method":"GET","url":"/","ip":"::ffff:172.31.35.211","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"}
+[2025-04-16T08:16:09.074Z] [WARN] [same] [edo-app-server] Route not found: GET / 
+[2025-04-16T08:16:09.075Z] [INFO] [same] [edo-app-server] HTTP GET / 404 1ms {"requestId":"req_1744791369074_azy86mx","method":"GET","url":"/","statusCode":404,"responseTime":1,"ip":"::ffff:172.31.35.211"}
+[2025-04-16T08:16:23.035Z] [INFO] [same] [edo-app-server] HTTP GET /health {"requestId":"req_1744791383035_d7rbr0x","method":"GET","url":"/health","ip":"::1","userAgent":"curl/8.5.0"}
+[2025-04-16T08:16:23.035Z] [INFO] [same] [edo-app-server] HTTP GET /health 200 0ms {"requestId":"req_1744791383035_d7rbr0x","method":"GET","url":"/health","statusCode":200,"responseTime":0,"ip":"::1"}
+[2025-04-16T08:17:12.959Z] [INFO] [same] [edo-app-server] HTTP GET / {"requestId":"req_1744791432959_4xgjl6w","method":"GET","url":"/","ip":"::ffff:172.31.35.211","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"}
+[2025-04-16T08:17:12.959Z] [WARN] [same] [edo-app-server] Route not found: GET / 
+[2025-04-16T08:17:12.959Z] [INFO] [same] [edo-app-server] HTTP GET / 404 0ms {"requestId":"req_1744791432959_4xgjl6w","method":"GET","url":"/","statusCode":404,"responseTime":0,"ip":"::ffff:172.31.35.211"}
+[2025-04-16T08:20:39.634Z] [INFO] [same] [edo-app-server] HTTP POST /api/auth/register {"requestId":"req_1744791639634_sv4k8p2","method":"POST","url":"/api/auth/register","ip":"::1","userAgent":"curl/8.5.0"}
+[2025-04-16T08:20:39.635Z] [DEBUG] [same] [edo-app-server] Register request received {"email":"test@example.com","username":"testuser"}
+[2025-04-16T08:20:39.635Z] [WARN] [same] [edo-app-server] Registration failed - missing required fields {"email":"test@example.com","username":"testuser","hasPassword":true,"hasFullName":false}
+[2025-04-16T08:20:39.635Z] [INFO] [same] [edo-app-server] HTTP POST /api/auth/register 400 1ms {"requestId":"req_1744791639634_sv4k8p2","method":"POST","url":"/api/auth/register","statusCode":400,"responseTime":1,"ip":"::1"}
+[2025-04-16T08:21:23.695Z] [INFO] [same] [edo-app-server] HTTP POST /api/auth/login {"requestId":"req_1744791683695_iw1sf0l","method":"POST","url":"/api/auth/login","ip":"::1","userAgent":"curl/8.5.0"}
+[2025-04-16T08:21:23.696Z] [DEBUG] [same] [edo-app-server] Login attempt {"email":"user@example.com"}
+[2025-04-16T08:21:23.696Z] [DEBUG] [same] [edo-app-server] Mock User.findOne called {"filter":{"email":"user@example.com"}}
+[2025-04-16T08:21:23.696Z] [DEBUG] [same] [edo-app-server] Mock comparePassword called {"candidatePassword":"password123"}
+[2025-04-16T08:21:23.699Z] [DEBUG] [same] [edo-app-server] Generated token for user {"userId":"60d0fe4f5311236168a109cb"}
+[2025-04-16T08:21:23.699Z] [INFO] [same] [edo-app-server] User logged in successfully {"userId":"60d0fe4f5311236168a109cb","email":"user@example.com"}
+[2025-04-16T08:21:23.699Z] [INFO] [same] [edo-app-server] HTTP POST /api/auth/login 200 4ms {"requestId":"req_1744791683695_iw1sf0l","method":"POST","url":"/api/auth/login","statusCode":200,"responseTime":4,"ip":"::1"}
+[2025-04-16T08:21:31.309Z] [INFO] [same] [edo-app-server] HTTP GET /health {"requestId":"req_1744791691309_heuw7md","method":"GET","url":"/health","ip":"::1","userAgent":"curl/8.5.0"}
+[2025-04-16T08:21:31.309Z] [INFO] [same] [edo-app-server] HTTP GET /health 200 0ms {"requestId":"req_1744791691309_heuw7md","method":"GET","url":"/health","statusCode":200,"responseTime":0,"ip":"::1"}
+[2025-04-16T08:21:45.712Z] [INFO] [same] [edo-app-server] Logger initialized {"env":"development-no-db","logLevel":"DEBUG","hostname":"same","consoleEnabled":true,"fileEnabled":true,"logDir":"/home/project/project/edo-project/logs"}
+[2025-04-16T08:21:45.716Z] [WARN] [same] [edo-app-server] Using mock User model for development without DB 
+[2025-04-16T08:21:45.721Z] [WARN] [same] [edo-app-server] Using mock Document model for development without DB 
+[2025-04-16T08:21:45.723Z] [INFO] [same] [edo-app-server] Server initializing {"node_version":"v22.6.0","platform":"linux","arch":"arm64","pid":1532,"env":"development-no-db"}
+[2025-04-16T08:21:45.724Z] [WARN] [same] [edo-app-server] Running without database connection 
+[2025-04-16T08:21:45.733Z] [INFO] [same] [edo-app-server] Server started on port 5000 {"env":"development-no-db","port":5000,"pid":1532,"memory":{"rss":119525376,"heapTotal":9719808,"heapUsed":30161679,"external":22547022,"arrayBuffers":420592}}
+[2025-04-16T08:21:51.386Z] [INFO] [same] [edo-app-server] HTTP GET /health {"requestId":"req_1744791711386_0kntr7d","method":"GET","url":"/health","ip":"::1","userAgent":"curl/8.5.0"}
+[2025-04-16T08:21:51.389Z] [INFO] [same] [edo-app-server] HTTP GET /health 200 3ms {"requestId":"req_1744791711386_0kntr7d","method":"GET","url":"/health","statusCode":200,"responseTime":3,"ip":"::1"}
