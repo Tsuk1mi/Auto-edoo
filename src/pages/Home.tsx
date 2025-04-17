@@ -4,10 +4,14 @@ import { useDocumentStore } from '@/store/documentStore';
 import { DocumentCard } from '@/features/documents/components/DocumentCard';
 import type { Document } from '@/types/Document';
 import { Button } from '@/components/ui/Button';
+import { logger } from '@/utils/logger';
 
 const Home = () => {
   const navigate = useNavigate();
   const { documents, fetchDocuments, isLoading, error } = useDocumentStore();
+  const [localDocuments, setLocalDocuments] = useState<Document[]>([]);
+  const [localError, setLocalError] = useState<string | null>(null);
+  const [localLoading, setLocalLoading] = useState(true);
   const [automationStatus, setAutomationStatus] = useState({
     autoSend: false,
     autoSign: false,
@@ -15,26 +19,69 @@ const Home = () => {
   });
 
   useEffect(() => {
-    fetchDocuments();
+    const loadDocuments = async () => {
+      try {
+        setLocalLoading(true);
+        await fetchDocuments();
+      } catch (err) {
+        logger.error('Ошибка при загрузке документов на главной:', {
+          error: err instanceof Error ? err.message : String(err)
+        });
+        setLocalError(err instanceof Error ? err.message : 'Ошибка при загрузке документов');
+      } finally {
+        setLocalLoading(false);
+      }
+    };
+
+    loadDocuments();
   }, [fetchDocuments]);
 
+  // Обновляем локальное состояние при изменении глобального
+  useEffect(() => {
+    if (!isLoading) {
+      setLocalDocuments(documents);
+    }
+    if (error) {
+      setLocalError(error);
+    }
+  }, [documents, error, isLoading]);
+
   const handleDocumentClick = (doc: Document) => {
-    console.log('Документ выбран:', doc);
-    // Navigate to document details page
+    logger.debug('Документ выбран:', { id: doc.id, name: doc.name });
+    navigate(`/documents/${doc.id}`);
   };
 
   const handleActionClick = (action: string) => {
-    console.log('Действие выбрано:', action);
+    logger.debug('Действие выбрано:', { action });
+
+    switch (action) {
+      case 'import':
+        navigate('/documents/import');
+        break;
+      case 'export':
+        navigate('/documents/export');
+        break;
+      case 'sign':
+        navigate('/documents?filter=pending');
+        break;
+      default:
+        // По умолчанию никуда не переходим
+        break;
+    }
   };
 
   const toggleAutomation = (key: keyof typeof automationStatus) => {
-    setAutomationStatus((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
+    setAutomationStatus((prev) => {
+      const newState = {
+        ...prev,
+        [key]: !prev[key],
+      };
+      logger.debug('Изменен статус автоматизации:', { feature: key, enabled: newState[key] });
+      return newState;
+    });
   };
 
-  const recentDocuments = documents.slice(0, 4);
+  const recentDocuments = localDocuments.slice(0, 4);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -90,14 +137,29 @@ const Home = () => {
             </Button>
           </div>
 
-          {isLoading ? (
+          {localLoading ? (
             <div className="text-center py-8">
               <i className="fas fa-circle-notch fa-spin text-blue-400 text-2xl mb-2" />
               <p className="text-gray-400">Загрузка документов...</p>
             </div>
-          ) : error ? (
+          ) : localError ? (
             <div className="bg-red-900/30 border border-red-800 text-red-300 p-4 rounded-lg">
-              {error}
+              <div className="flex items-center">
+                <i className="fas fa-exclamation-circle text-red-400 mr-2" />
+                <span>{localError}</span>
+              </div>
+              <div className="mt-2 flex justify-end">
+                <button
+                  onClick={() => {
+                    setLocalError(null);
+                    setLocalLoading(true);
+                    fetchDocuments().finally(() => setLocalLoading(false));
+                  }}
+                  className="text-sm text-blue-400 hover:underline focus:outline-none"
+                >
+                  Повторить загрузку
+                </button>
+              </div>
             </div>
           ) : recentDocuments.length === 0 ? (
             <div className="text-center py-8 bg-gray-800 rounded-lg border border-gray-700">
@@ -221,7 +283,7 @@ const Home = () => {
           <p className="text-sm text-gray-300">Если у вас возникли вопросы, обратитесь в нашу службу поддержки.</p>
           <button
             className="text-blue-400 hover:underline text-sm mt-2 block transition-colors duration-200"
-            onClick={() => console.log('Связаться с поддержкой')}
+            onClick={() => navigate('/support')}
           >
             Связаться с поддержкой
           </button>

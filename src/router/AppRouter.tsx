@@ -31,7 +31,7 @@ const LoadingFallback = () => (
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { token, checkAuth, isLoading } = useAuthStore();
   const [isChecking, setIsChecking] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(Boolean(token));
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -76,7 +76,12 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     };
 
     // Проверяем аутентификацию только если не находимся на странице логина
-    if (!location.pathname.includes('/login')) {
+    if (token && !location.pathname.includes('/login')) {
+      // Устанавливаем isAuthenticated в true сразу при наличии токена,
+      // чтобы избежать мерцания экрана при переходе между страницами
+      setIsAuthenticated(true);
+
+      // Затем асинхронно проверяем токен
       verifyAuth();
     } else {
       setIsChecking(false);
@@ -174,7 +179,11 @@ const PublicOnlyRoute = ({ children }: { children: React.ReactNode }) => {
 
       // Перенаправляем на запрошенный ранее путь или на главную
       const from = (location.state as any)?.from?.pathname || '/';
-      navigate(from, { replace: true });
+
+      // Используем задержку для перенаправления, чтобы предотвратить проблемы с состоянием
+      setTimeout(() => {
+        navigate(from, { replace: true });
+      }, 100);
     }
   }, [token, navigate, location]);
 

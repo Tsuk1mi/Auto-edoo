@@ -31,25 +31,29 @@ const LoginPage = () => {
     e.preventDefault();
 
     try {
-      logger.debug("Attempting login", { email: credentials.email });
+      logger.debug("Attempting login", { email: credentials.email, from });
 
-      // Для демо-режима автоматически установим правильные учетные данные
-      if (credentials.email === '') {
-        setCredentials({
-          email: 'user@example.com',
-          password: 'password123'
-        });
-        logger.debug("Using demo credentials");
-      }
-
-      // Выполняем вход
-      await login(credentials.email === '' ?
+      // Выполняем вход с текущими учетными данными
+      const creds = credentials.email === '' ?
         { email: 'user@example.com', password: 'password123' } :
-        credentials);
+        credentials;
 
-      // Успешный вход
+      // Сначала выполняем вход
+      logger.debug("Before login call", { email: creds.email });
+      await login(creds);
+      logger.debug("After login call - authentication successful");
+
+      // После успешного входа сразу перенаправляем
       logger.info("Login successful, redirecting to:", { to: from });
-      navigate(from, { replace: true });
+
+      // Используем небольшую задержку для перенаправления, чтобы состояние успело обновиться
+      logger.debug("Setting navigation timeout to", { path: from });
+      setTimeout(() => {
+        logger.debug("Navigation timeout triggered, navigating to", { path: from });
+        navigate(from, { replace: true });
+        logger.debug("Navigation called");
+      }, 100);
+
     } catch (error) {
       logger.error('Login error', {
         error: error instanceof Error ? error.message : String(error)
@@ -64,20 +68,40 @@ const LoginPage = () => {
 
   // Для упрощения тестирования демо-режима
   const setDemoCredentials = () => {
-    logger.debug("Demo credentials set and submitting form");
+    logger.debug("Demo mode activated");
 
     // Устанавливаем демо-данные
-    setCredentials({
+    const demoCredentials = {
       email: 'user@example.com',
       password: 'password123'
-    });
+    };
 
-    // Автоматически выполняем вход через небольшую задержку,
-    // чтобы состояние успело обновиться
-    setTimeout(() => {
-      const fakeEvent = { preventDefault: () => {} } as React.FormEvent;
-      handleSubmit(fakeEvent);
-    }, 100);
+    logger.debug("Setting demo credentials", { email: demoCredentials.email });
+    // Сначала обновляем состояние
+    setCredentials(demoCredentials);
+
+    // Непосредственно вызываем логин с демо-данными вместо создания фейкового события
+    try {
+      logger.debug("Calling login directly with demo credentials");
+      login(demoCredentials).then(() => {
+        logger.info("Demo login successful, redirecting to:", { to: from });
+        // Перенаправляем после успешного входа
+        logger.debug("Setting navigation timeout for demo mode");
+        setTimeout(() => {
+          logger.debug("Demo navigation timeout triggered, navigating to", { path: from });
+          navigate(from, { replace: true });
+          logger.debug("Demo navigation called");
+        }, 100);
+      }).catch(error => {
+        logger.error('Demo login promise error', {
+          error: error instanceof Error ? error.message : String(error)
+        });
+      });
+    } catch (error) {
+      logger.error('Demo login error', {
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
   };
 
   return (

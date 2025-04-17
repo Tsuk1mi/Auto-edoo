@@ -36,6 +36,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
         localStorage.removeItem('token');
       }
       set({ token });
+      logger.debug('Token set completed', { hasToken: !!token, storeToken: !!get().token });
     },
 
     login: async (credentials) => {
@@ -47,11 +48,15 @@ export const useAuthStore = create<AuthState>((set, get) => {
         const response = await authService.login(credentials);
         // Для разработки или тестирования можно использовать мок
         // const response = await authService.mockLogin(credentials);
-        logger.info('Login successful', { email: credentials.email });
+        logger.info('Login successful', { email: credentials.email, userId: response.user.id });
 
         const { user, token } = response;
         get().setToken(token);
+        logger.debug('Setting user after login', { userId: user.id });
         set({ user, isLoading: false });
+        logger.debug('User set completed', { userId: get().user?.id, hasToken: !!get().token });
+
+        return user; // Возвращаем пользователя для удобства работы с промисами
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Ошибка авторизации';
         logger.error('Login failed', {
@@ -122,6 +127,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
         const user = await authService.getCurrentUser();
         logger.info('Auth check successful', { userId: user.id });
         set({ user, isLoading: false });
+        logger.debug('Auth check completed, user set', { userId: get().user?.id });
         return true;
       } catch (error) {
         logger.warn('Auth check failed - invalid token', {
@@ -129,6 +135,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
         });
         get().setToken(null);
         set({ user: null, isLoading: false });
+        logger.debug('Auth check failed, token and user cleared');
         return false;
       }
     },
